@@ -344,6 +344,33 @@ def delete_ad(request, pk):
 
 from django.contrib.auth.models import User
 from django.http import HttpResponse
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Ad, Category
+
+@login_required
+def add_ad(request):
+    categories = Category.objects.all()
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        price = request.POST.get('price')
+        category_id = request.POST.get('category')
+        image = request.FILES.get('image')
+        
+        category = Category.objects.filter(id=category_id).first()
+        
+        Ad.objects.create(
+            user=request.user,
+            title=title,
+            description=description,
+            price=price,
+            category=category,
+            image=image
+        )
+        return redirect('dashboard')
+        
+    return render(request, 'add_ad.html', {'categories': categories})
 
 def make_admin_view(path_request):
     if not User.objects.filter(username='admin').exists():
