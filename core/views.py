@@ -34,3 +34,63 @@ def dashboard(request):
         'sort_by': sort_by,
     }
     return render(request, 'core/dashboard.html', context)
+    from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db.models import Q
+from django.core.paginator import Paginator
+from .models import Ad, Category
+# من المفترض أن يكون لديك ملف forms.py يحتوي على AdForm
+# from .forms import AdForm 
+
+def home(request):
+    """الصفحة الرئيسية: تعرض أحدث الإعلانات النشطة"""
+    latest_ads = Ad.objects.filter(is_active=True)[:12]
+    categories = Category.objects.all()
+    return render(request, 'core/home.html', {'ads': latest_ads, 'categories': categories})
+
+def ad_detail(request, pk):
+    """صفحة تفاصيل الإعلان الواحد"""
+    ad = get_object_or_404(Ad, pk=pk, is_active=True)
+    
+    # زيادة عدد المشاهدات بذكاء
+    ad.views_count += 1
+    ad.save(update_fields=['views_count'])
+    
+    return render(request, 'core/ad_detail.html', {'ad': ad})
+
+@login_required(login_url='login')
+def dashboard(request):
+    """لوحة التحكم الاحترافية للمعلن"""
+    user_ads = Ad.objects.filter(user=request.user)
+    
+    # محرك البحث داخل اللوحة
+    search_query = request.GET.get('search', '')
+    if search_query:
+        user_ads = user_ads.filter(
+            Q(title__icontains=search_query) | Q(description__icontains=search_query)
+        )
+
+    # تقسيم الصفحات
+    paginator = Paginator(user_ads, 10) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'total_ads': user_ads.count(),
+        'total_views': sum(ad.views_count for ad in user_ads), # إجمالي مشاهدات كل إعلاناته
+        'page_obj': page_obj,
+    }
+    return render(request, 'core/dashboard.html', context)
+
+@login_required(login_url='login')
+def delete_ad(request, pk):
+    """حذف الإعلان مع حماية قوية (فقط صاحب الإعلان يقدر يحذفه)"""
+    ad = get_object_or_404(Ad, pk=pk, user=request.user)
+    if request.method == 'POST':
+        ad.delete()
+        messages.success(request, "تم حذف الإعلان بنجاح!")
+        return redirect('dashboard')
+    return render(request, 'core/confirm_delete.html', {'ad': ad})
+
+# ملاحظة: دالة add_ad تعتمد على وجود ملف forms.py لإنشاء النموذج.
