@@ -534,3 +534,111 @@ def make_admin_view(request):
         User.objects.create_superuser('admin', 'admin@example.com', '12345678')
         return HttpResponse('تم إنشاء حساب المشرف بنجاح! اسم المستخدم: admin | كلمة المرور: 12345678.')
     return HttpResponse('حساب المشرف موجود مسبقاً بالفعل!')
+import json
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
+from django.http import HttpResponse, JsonResponse
+from django.db.models import Q
+from .models import Ad, Category
+
+# --- دوال التصفح والبحث الذكي ---
+def home(request):
+    query = request.GET.get('q', '')
+    category_id = request.GET.get('category', '')
+    
+    ads = Ad.objects.filter(is_active=True).order_by('-created_at')
+    if query:
+        ads = ads.filter(Q(title__icontains=query) | Q(description__icontains=query))
+    if category_id:
+        ads = ads.filter(category_id=category_id)
+        
+    return render(request, 'home.html', {
+        'ads': ads,
+        'categories': Category.objects.all(),
+        'search_query': query,
+        'selected_category': category_id
+    })
+
+def ad_detail(request, pk):
+    ad = get_object_or_404(Ad, pk=pk)
+    if hasattr(ad, 'views_count'):
+        ad.views_count += 1
+        ad.save(update_fields=['views_count'])
+    return render(request, 'ad_detail.html', {'ad': ad})
+
+# --- دوال لوحة التحكم وإدارة الإعلانات ---
+@login_required
+def dashboard(request):
+    user_ads = Ad.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'dashboard.html', {'ads': user_ads, 'total_ads': user_ads.count()})
+
+@login_required
+def add_ad(request):
+    if request.method == 'POST':
+        Ad.objects.create(
+            user=request.user,
+            title=request.POST.get('title'),
+            description=request.POST.get('description'),
+            price=request.POST.get('price'),
+            category=Category.objects.filter(id=request.POST.get('category')).first(),
+            image=request.FILES.get('image')
+        )
+        return redirect('dashboard')
+    return render(request, 'add_ad.html', {'categories': Category.objects.all()})
+
+@login_required
+def edit_ad(request, pk):
+    ad = get_object_or_404(Ad, pk=pk, user=request.user)
+    if request.method == 'POST':
+        ad.title = request.POST.get('title')
+        ad.description = request.POST.get('description')
+        ad.price = request.POST.get('price')
+        ad.category = Category.objects.filter(id=request.POST.get('category')).first()
+        if request.FILES.get('image'):
+            ad.image = request.FILES.get('image')
+        ad.save()
+        return redirect('dashboard')
+    return render(request, 'edit_ad.html', {'ad': ad, 'categories': Category.objects.all()})
+
+@login_required
+def delete_ad(request, pk):
+    ad = get_object_or_404(Ad, pk=pk, user=request.user)
+    if request.method == 'POST':
+        ad.delete()
+        return redirect('dashboard')
+    return render(request, 'delete_ad.html', {'ad': ad})
+
+# --- دوال الحسابات ---
+def register_view(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            login(request, form.save())
+            return redirect('dashboard')
+    else:
+        form = UserCreationForm()
+    return render(request, 'register.html', {'form': form})
+
+def make_admin_view(request):
+    if not User.objects.filter(username='admin').exists():
+        User.objects.create_superuser('admin', 'admin@example.com', '12345678')
+        return HttpResponse('تم إنشاء حساب المشرف بنجاح! اسم المستخدم: admin | كلمة المرور: 12345678.')
+    return HttpResponse('حساب المشرف موجود مسبقاً بالفعل!')
+
+# --- ميزة الذكاء الاصطناعي (AI Assistant) ---
+def ai_generate_description(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            title = data.get('title', '')
+            if title:
+                # محرك توليد ذكي مدمج (كخطوة أولى قبل ربطه بـ API خارجي لاحقاً)
+                ai_text = f"🔥 فرصة مميزة! نقدم لكم '{title}' بحالة ممتازة ومواصفات رائعة. السعر منافس جداً وجاهز للتسليم الفوري. تواصل معنا الآن للمزيد من التفاصيل ولا تفوت هذه الفرصة!"
+                return JsonResponse({'success': True, 'description': ai_text})
+            return JsonResponse({'success': False, 'error': 'العنوان فارغ'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'success': False, 'error': 'طلب غير صالح'})
