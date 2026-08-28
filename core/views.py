@@ -89,3 +89,55 @@ def make_admin_user(request):
 def logout_view(request):
     auth_logout(request)
     return redirect('home')
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Q
+from django.core.paginator import Paginator
+from .models import Ad  # تأكد إن اسم الكلاس تبع الإعلانات هو Ad في ملف models.py
+
+@login_required(login_url='login')
+def dashboard(request):
+    """
+    لوحة تحكم احترافية للمستخدم: تشمل إحصائيات، بحث متطور، فلترة، وتقسيم صفحات.
+    """
+    # 1. جلب المستخدم الحالي
+    user = request.user
+
+    # 2. استدعاء إعلانات المستخدم فقط (مستحيل يشوف إعلانات غيره)
+    user_ads = Ad.objects.filter(user=user)
+    
+    # 3. الإحصائيات (لمحاكاة لوحات تحكم المتاجر الكبرى)
+    total_ads_count = user_ads.count()
+
+    # 4. محرك بحث ذكي داخل لوحة التحكم (يبحث في العنوان والتفاصيل معاً)
+    search_query = request.GET.get('search', '')
+    if search_query:
+        user_ads = user_ads.filter(
+            Q(title__icontains=search_query) | 
+            Q(description__icontains=search_query)
+        )
+
+    # 5. نظام الفلترة والترتيب (مهم جداً إذا بتعرض قطع كمبيوتر أو سيارات)
+    # الترتيب الافتراضي هو الأحدث
+    sort_by = request.GET.get('sort', '-created_at') 
+    valid_sorts = ['price', '-price', 'created_at', '-created_at']
+    if sort_by in valid_sorts:
+        user_ads = user_ads.order_by(sort_by)
+
+    # 6. نظام تقسيم الصفحات (Pagination) عشان الموقع يضل "طلقة"
+    # يعرض 10 إعلانات فقط في كل صفحة لتوفير موارد السيرفر
+    paginator = Paginator(user_ads, 10) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # 7. تغليف البيانات وإرسالها للواجهة الأمامية
+    context = {
+        'user': user,
+        'total_ads_count': total_ads_count,
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'sort_by': sort_by,
+    }
+
+    # 8. عرض قالب الـ HTML (الواجهة)
+    return render(request, 'core/dashboard.html', context)
