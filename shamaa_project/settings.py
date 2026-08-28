@@ -1,15 +1,16 @@
-import os
 from pathlib import Path
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-change-this-to-a-secure-random-string-for-production'
+# Quick-start development settings - unsuitable for production
+SECRET_KEY = 'django-insecure-your-secret-key-goes-here'
 
-# اجعلها True طالما أن الموقع يعمل محلياً على جهازك لكي تظهر لك تفاصيل الأخطاء بوضوح
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -30,10 +31,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'shamaa_project.urls         
+ROOT_URLCONF = 'shamaa_project.urls'
 
-WSGI_APPLICATION = 'shamaa_project.wsgi.application'
-    TEMPLATES = [
+TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR / 'templates'],
@@ -48,6 +48,10 @@ WSGI_APPLICATION = 'shamaa_project.wsgi.application'
         },
     },
 ]
+
+WSGI_APPLICATION = 'shamaa_project.wsgi.application'
+
+# Database
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -55,6 +59,7 @@ DATABASES = {
     }
 }
 
+# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -70,15 +75,21 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Internationalization
 LANGUAGE_CODE = 'ar'
+
 TIME_ZONE = 'Asia/Amman'
+
 USE_I18N = True
+
 USE_TZ = True
 
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
 
+# Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
