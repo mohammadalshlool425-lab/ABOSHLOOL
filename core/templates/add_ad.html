@@ -63,3 +63,89 @@
     </div>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إضافة إعلان جديد</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+</head>
+<body class="bg-light p-5">
+    <div class="container" style="max-width: 600px;">
+        <div class="card shadow p-4 border-0" style="border-radius: 15px;">
+            <h2 class="mb-4 text-primary text-center fw-bold">إضافة إعلان جديد 📢</h2>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">عنوان الإعلان</label>
+                    <div class="input-group">
+                        <input type="text" id="ad_title" name="title" class="form-control" placeholder="مثال: سيارة تويوتا كامري 2020" required>
+                        <button type="button" class="btn btn-outline-primary fw-bold" onclick="generateAI()">✨ وصف ذكي</button>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">القسم</label>
+                    <select name="category" class="form-select">
+                        {% for cat in categories %}
+                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">السعر (دينار)</label>
+                    <input type="number" step="0.01" name="price" class="form-control" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">تفاصيل الإعلان</label>
+                    <textarea id="ad_desc" name="description" rows="5" class="form-control" placeholder="اكتب التفاصيل أو استخدم زر الوصف الذكي بالأعلى..." required></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">صورة الإعلان</label>
+                    <input type="file" name="image" class="form-control">
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100 py-2 fs-5 fw-bold">نشر الإعلان 🚀</button>
+            </form>
+            <div class="text-center mt-3">
+                <a href="/dashboard/" class="text-secondary text-decoration-none">العودة إلى لوحة التحكم</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- سكريبت الذكاء الاصطناعي -->
+    <script>
+        function generateAI() {
+            const title = document.getElementById('ad_title').value;
+            if(!title) { 
+                alert('الرجاء كتابة "عنوان الإعلان" أولاً ليقوم الذكاء الاصطناعي بوصفه!'); 
+                return; 
+            }
+            
+            const descBox = document.getElementById('ad_desc');
+            descBox.value = '⏳ جاري كتابة الوصف باستخدام الذكاء الاصطناعي...';
+            
+            fetch('/ai-generate/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({title: title})
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) { 
+                    descBox.value = data.description; 
+                } else { 
+                    descBox.value = '';
+                    alert('حدث خطأ، يرجى المحاولة مرة أخرى.'); 
+                }
+            });
+        }
+    </script>
+</body>
+</html>
