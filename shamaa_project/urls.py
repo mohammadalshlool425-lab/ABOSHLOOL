@@ -15,7 +15,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     from core.views import make_admin_view  # تأكد من استيراد الدالة في الأعلى
-
+path('add/', views.add_ad, name='add_ad'),
 # وفي داخل urlpatterns أضف هذا السطر:
 path('make-admin/', make_admin_view, name='make_admin'),
     # الرابط السحري
