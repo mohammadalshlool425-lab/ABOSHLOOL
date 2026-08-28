@@ -5,3 +5,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('core.urls')),
 ]
+core/
+ ├── __init__.py
+ ├── views.py
+ └── urls.py
