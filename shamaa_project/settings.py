@@ -34,8 +34,10 @@ ROOT_URLCONF = 'shamaa_project.urls'
 
 TEMPLATES = [
     {
+   TEMPLATES = [
+    {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],  # <-- أضفنا هذا السطر هنا
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
