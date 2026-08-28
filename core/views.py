@@ -341,3 +341,12 @@ def delete_ad(request, pk):
         messages.success(request, "تم الحذف بنجاح!")
         return redirect('dashboard')
     return render(request, 'confirm_delete.html', {'ad': ad})
+
+from django.contrib.auth.models import User
+from django.http import HttpResponse
+
+def make_admin_view(path_request):
+    if not User.objects.filter(username='admin').exists():
+        User.objects.create_superuser('admin', 'admin@example.com', '12345678')
+        return HttpResponse('تم إنشاء حساب المشرف بنجاح! اسم المستخدم: admin | كلمة المرور: 12345678. يمكنك تسجيل الدخول الآن.')
+    return HttpResponse('حساب المشرف موجود مسبقاً بالفعل!')
