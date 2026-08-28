@@ -427,3 +427,110 @@ def make_admin_view(request):
         User.objects.create_superuser('admin', 'admin@example.com', '12345678')
         return HttpResponse('تم إنشاء حساب المشرف بنجاح! اسم المستخدم: admin | كلمة المرور: 12345678. يمكنك تسجيل الدخول الآن.')
     return HttpResponse('حساب المشرف موجود مسبقاً بالفعل!')
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
+from django.http import HttpResponse
+from django.db.models import Q
+from .models import Ad, Category
+
+def home(request):
+    query = request.GET.get('q', '')
+    category_id = request.GET.get('category', '')
+    
+    ads = Ad.objects.filter(is_active=True).order_by('-created_at')
+    
+    if query:
+        ads = ads.filter(Q(title__icontains=query) | Q(description__icontains=query))
+    if category_id:
+        ads = ads.filter(category_id=category_id)
+        
+    categories = Category.objects.all()
+    return render(request, 'home.html', {
+        'ads': ads,
+        'categories': categories,
+        'search_query': query,
+        'selected_category': category_id
+    })
+
+def ad_detail(request, pk):
+    ad = get_object_or_404(Ad, pk=pk)
+    ad.views_count += 1
+    ad.save(update_fields=['views_count'])
+    return render(request, 'ad_detail.html', {'ad': ad})
+
+@login_required
+def dashboard(request):
+    user_ads = Ad.objects.filter(user=request.user).order_by('-created_at')
+    total_ads = user_ads.count()
+    return render(request, 'dashboard.html', {
+        'ads': user_ads,
+        'total_ads': total_ads
+    })
+
+@login_required
+def add_ad(request):
+    categories = Category.objects.all()
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        price = request.POST.get('price')
+        category_id = request.POST.get('category')
+        image = request.FILES.get('image')
+        
+        category = Category.objects.filter(id=category_id).first()
+        
+        Ad.objects.create(
+            user=request.user,
+            title=title,
+            description=description,
+            price=price,
+            category=category,
+            image=image
+        )
+        return redirect('dashboard')
+        
+    return render(request, 'add_ad.html', {'categories': categories})
+
+@login_required
+def edit_ad(request, pk):
+    ad = get_object_or_404(Ad, pk=pk, user=request.user)
+    categories = Category.objects.all()
+    if request.method == 'POST':
+        ad.title = request.POST.get('title')
+        ad.description = request.POST.get('description')
+        ad.price = request.POST.get('price')
+        category_id = request.POST.get('category')
+        ad.category = Category.objects.filter(id=category_id).first()
+        if request.FILES.get('image'):
+            ad.image = request.FILES.get('image')
+        ad.save()
+        return redirect('dashboard')
+    return render(request, 'edit_ad.html', {'ad': ad, 'categories': categories})
+
+@login_required
+def delete_ad(request, pk):
+    ad = get_object_or_404(Ad, pk=pk, user=request.user)
+    if request.method == 'POST':
+        ad.delete()
+        return redirect('dashboard')
+    return render(request, 'delete_ad.html', {'ad': ad})
+
+def register_view(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('dashboard')
+    else:
+        form = UserCreationForm()
+    return render(request, 'register.html', {'form': form})
+
+def make_admin_view(request):
+    if not User.objects.filter(username='admin').exists():
+        User.objects.create_superuser('admin', 'admin@example.com', '12345678')
+        return HttpResponse('تم إنشاء حساب المشرف بنجاح! اسم المستخدم: admin | كلمة المرور: 12345678.')
+    return HttpResponse('حساب المشرف موجود مسبقاً بالفعل!')
