@@ -59,3 +59,10 @@ urlpatterns = [
     path('make-admin/', views.make_admin_view, name='make_admin'),
     path('ai-generate/', views.ai_generate_description, name='ai_generate'), # مسار الذكاء الاصطناعي الجديد
 ]
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('core.urls')),
+]
