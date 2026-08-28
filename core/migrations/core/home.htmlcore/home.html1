@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة الإعلانات الكبرى</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .hero { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 4rem 0; border-radius: 0 0 30px 30px; margin-bottom: 2rem; }
+        .ad-card { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: transform 0.3s; background: white; }
+        .ad-card:hover { transform: translateY(-5px); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{% url 'home' %}"><i class="fa-solid fa-store me-2"></i> سوق أبو شلول</a>
+            <div>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline-light btn-sm me-2">لوحة التحكم</a>
+                    <a href="{% url 'logout_view' %}" class="btn btn-danger btn-sm">خروج</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-outline-light btn-sm me-2">تسجيل الدخول</a>
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-sm">حساب جديد</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="hero text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">منصتك الأولى للبيع والشراء باحترافية</h1>
+            <p class="lead mb-4">اكتشف آلاف الإعلانات أو أضف إعلانك الخاص بكل سهولة.</p>
+            <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg fw-bold px-4">أضف إعلانك الآن</a>
+        </div>
+    </div>
+
+    <div class="container mb-5">
+        <h3 class="mb-4 fw-bold text-secondary"><i class="fa-solid fa-fire me-2 text-danger"></i> أحدث الإعلانات</h3>
+        <div class="row">
+            {% for ad in ads %}
+            <div class="col-md-4 mb-4">
+                <div class="card ad-card p-3 h-100">
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold text-dark">{{ ad.title }}</h5>
+                        <p class="card-text text-muted small">{{ ad.description|truncatechars:80 }}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <span class="text-success fw-bold fs-5">{{ ad.price }} دينار</span>
+                            <a href="{% url 'ad_detail' ad.pk %}" class="btn btn-outline-primary btn-sm">التفاصيل</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <h4 class="text-muted">لا توجد إعلانات منشورة حتى الآن. كن أول المعلنين!</h4>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+</html>
