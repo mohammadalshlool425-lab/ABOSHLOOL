@@ -33,7 +33,7 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'shamaa_project.urls'
 
 
-  TEMPLATES = [
+ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR / 'templates'],
