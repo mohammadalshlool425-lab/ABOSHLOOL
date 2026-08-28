@@ -30,10 +30,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'shamaa_project.urls'
+ROOT_URLCONF = 'shamaa_project.urls         
 
-
- TEMPLATES = [
+WSGI_APPLICATION = 'shamaa_project.wsgi.application'
+    TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR / 'templates'],
@@ -48,9 +48,6 @@ ROOT_URLCONF = 'shamaa_project.urls'
         },
     },
 ]
-
-WSGI_APPLICATION = 'shamaa_project.wsgi.application'
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
