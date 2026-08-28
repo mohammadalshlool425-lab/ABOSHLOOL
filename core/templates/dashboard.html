@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم | شمعة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Cairo', sans-serif; background-color: #f4f6f8; color: #333; }
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .header-dash { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.04); margin-bottom: 30px; }
+        h1 { color: #0056b3; font-size: 24px; }
+        .btn { background: #ff7b00; color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: 700; text-decoration: none; transition: 0.2s; display: inline-block; }
+        .btn:hover { background: #e06d00; }
+        .btn-secondary { background: #0056b3; margin-left: 10px; }
+        .btn-secondary:hover { background: #004080; }
+        .ads-list { display: flex; flex-direction: column; gap: 15px; }
+        .ad-item { background: #fff; padding: 15px 20px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        .ad-info h3 { font-size: 18px; margin-bottom: 5px; color: #222; }
+        .ad-info p { color: #666; font-size: 14px; }
+        .btn-delete { background: #d9534f; color: #fff; padding: 8px 15px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; }
+        .btn-delete:hover { background: #c9302c; }
+        .empty { text-align: center; background: #fff; padding: 40px; border-radius: 10px; color: #777; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-dash">
+            <h1>لوحة التحكم الخاصة بك 📊</h1>
+            <div>
+                <a href="{% url 'home' %}" class="btn btn-secondary">الرئيسية</a>
+                <a href="{% url 'add_ad' %}" class="btn">+ أضف إعلان جديد</a>
+            </div>
+        </div>
+
+        <h2 style="margin-bottom: 15px; font-size: 20px;">إعلاناتي المنشورة</h2>
+
+        <div class="ads-list">
+            {% for ad in ads %}
+                <div class="ad-item">
+                    <div class="ad-info">
+                        <h3><a href="{% url 'ad_detail' ad.id %}" style="text-decoration:none; color:inherit;">{{ ad.title }}</a></h3>
+                        <p>السعر: <strong>{{ ad.price }} دينار</strong> | التاريخ: {{ ad.created_at|date:"Y/m/d" }}</p>
+                    </div>
+                    <div>
+                        <a href="{% url 'delete_ad' ad.id %}" class="btn-delete" onclick="return confirm('هل أنت متأكد من حذف هذا الإعلان؟')">حذف</a>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="empty">
+                    <p>ليس لديك أي إعلانات منشورة حتى الآن. ابدأ بإضافة إعلانك الأول!</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
