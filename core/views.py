@@ -94,3 +94,37 @@ def delete_ad(request, pk):
     return render(request, 'core/confirm_delete.html', {'ad': ad})
 
 # ملاحظة: دالة add_ad تعتمد على وجود ملف forms.py لإنشاء النموذج.
+from django.shortcuts import redirect # تأكد إنها موجودة فوق مع باقي الاستدعاءات
+
+@login_required(login_url='login')
+def add_ad(request):
+    """دالة احترافية لإضافة إعلان جديد مع دعم رفع الصور والأقسام"""
+    categories = Category.objects.all()
+    
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        price = request.POST.get('price')
+        category_id = request.POST.get('category')
+        image = request.FILES.get('image') # لاستقبال الصور
+
+        # التأكد من إدخال البيانات الأساسية
+        if title and description and price:
+            category = Category.objects.filter(id=category_id).first() if category_id else None
+            
+            # إنشاء الإعلان وحفظه في قاعدة البيانات
+            Ad.objects.create(
+                user=request.user,
+                category=category,
+                title=title,
+                description=description,
+                price=price,
+                image=image
+            )
+            messages.success(request, "تم نشر إعلانك بنجاح! 🚀")
+            return redirect('dashboard')
+        else:
+            messages.error(request, "يرجى تعبئة جميع الحقول المطلوبة.")
+
+    # إذا كان الطلب عادي (GET)، اعرض صفحة الإضافة
+    return render(request, 'core/add_ad.html', {'categories': categories})
