@@ -8,7 +8,7 @@ SECRET_KEY = 'django-insecure-change-this-to-a-secure-random-string-for-producti
 # اجعلها True طالما أن الموقع يعمل محلياً على جهازك لكي تظهر لك تفاصيل الأخطاء بوضوح
 DEBUG = True
 
-ALLOWED_HOSTS = ['.pythonanywhere.com', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
