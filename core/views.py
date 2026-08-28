@@ -75,6 +75,14 @@ def login_view(request):
             auth_login(request, user)
             return redirect('home')
     else:
+        from django.contrib.auth.models import User
+from django.http import HttpResponse
+
+def make_admin_user(request):
+    if not User.objects.filter(username='admin').exists():
+        User.objects.create_superuser('admin', 'admin@example.com', '12345678')
+        return HttpResponse('<h2 dir="rtl" style="text-align:center; margin-top:50px; color:green;">تم بنجاح! الرابط الجديد اشتغل وتم إنشاء المدير.</h2>')
+    return HttpResponse('<h2 dir="rtl" style="text-align:center; margin-top:50px; color:blue;">حساب المدير موجود مسبقاً، يمكنك تسجيل الدخول الآن.</h2>')
         form = AuthenticationForm()
     return render(request, 'login.html', {'form': form})
 
