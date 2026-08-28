@@ -377,3 +377,53 @@ def make_admin_view(path_request):
         User.objects.create_superuser('admin', 'admin@example.com', '12345678')
         return HttpResponse('تم إنشاء حساب المشرف بنجاح! اسم المستخدم: admin | كلمة المرور: 12345678. يمكنك تسجيل الدخول الآن.')
     return HttpResponse('حساب المشرف موجود مسبقاً بالفعل!')
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.http import HttpResponse
+from .models import Ad, Category
+
+def home(request):
+    latest_ads = Ad.objects.filter(is_active=True)[:6]
+    categories = Category.objects.all()
+    return render(request, 'home.html', {'ads': latest_ads, 'categories': categories})
+
+@login_required
+def dashboard(request):
+    user_ads = Ad.objects.filter(user=request.user)
+    return render(request, 'dashboard.html', {'ads': user_ads})
+
+@login_required
+def add_ad(request):
+    categories = Category.objects.all()
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        price = request.POST.get('price')
+        category_id = request.POST.get('category')
+        image = request.FILES.get('image')
+        
+        category = Category.objects.filter(id=category_id).first()
+        
+        Ad.objects.create(
+            user=request.user,
+            title=title,
+            description=description,
+            price=price,
+            category=category,
+            image=image
+        )
+        return redirect('dashboard')
+        
+    return render(request, 'add_ad.html', {'categories': categories})
+
+def ad_detail(request, pk):
+    ad = get_object_or_404(Ad, pk=pk)
+    return render(request, 'ad_detail.html', {'ad': ad})
+
+def make_admin_view(request):
+    if not User.objects.filter(username='admin').exists():
+        User.objects.create_superuser('admin', 'admin@example.com', '12345678')
+        return HttpResponse('تم إنشاء حساب المشرف بنجاح! اسم المستخدم: admin | كلمة المرور: 12345678. يمكنك تسجيل الدخول الآن.')
+    return HttpResponse('حساب المشرف موجود مسبقاً بالفعل!')
